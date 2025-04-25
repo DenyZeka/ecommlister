@@ -1,0 +1,121 @@
+{
+  "manifest_version": 3,
+  "name": "EcommLister",
+  "version": "2.0.1.1",
+  "description": "Listings items to eBay.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://www.saleyee.com/*",
+    "https://www.saleyee.cn/*",
+    "https://www.aliexpress.com/*",
+    "https://www.aliexpress.us/*",
+    "https://*.aliexpress-media.com/*",
+    "https://www.ebay.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "Scripts/eBay/ebayVariations.js"
+      ]
+    },
+    {
+      "matches": [
+        "https://www.saleyee.com/*"
+      ],
+      "js": [
+        "indexdb-manager.js",
+        "mainScript.js"
+      ],
+      "css": [
+        "styles.css"
+      ]
+    },
+    {
+      "matches": [
+        "https://www.saleyee.com/*"
+      ],
+      "js": [
+        "Scripts/SaleYee/saleyeeContentScript.js"
+      ]
+    },
+    {
+      "matches": [
+        "https://www.aliexpress.com/item/*",
+        "https://www.aliexpress.us/item/*"
+      ],
+      "js": [
+        "indexdb-manager.js",
+        "mainScript.js"
+      ],
+      "css": [
+        "styles.css"
+      ]
+    },
+    {
+      "matches": [
+        "https://www.aliexpress.com/item/*",
+        "https://www.aliexpress.us/item/*"
+      ],
+      "js": [
+        "Scripts/AliExpress/aliexpressContentScript.js"
+      ]
+    },
+    {
+      "matches": [
+        "https://www.ebay.com/sl/prelist/suggest*"
+      ],
+      "js": [
+        "Scripts/eBay/ebayPrelist.js"
+      ]
+    },
+    {
+      "matches": [
+        "https://www.ebay.com/sl/prelist/identify*"
+      ],
+      "js": [
+        "Scripts/eBay/ebayIdentify.js"
+      ]
+    },
+    {
+      "matches": ["https://www.ebay.com/sl/list*mode=AddItem",
+        "https://www.ebay.com/lstng*mode=AddItem"],
+      "js": ["Scripts/eBay/ebayVariations.js"],
+      "all_frames": true,
+      "match_about_blank": true
+    },
+    {
+      "matches": [
+        "https://www.ebay.com/sl/list*mode=AddItem",
+        "https://www.ebay.com/lstng*mode=AddItem"
+      ],
+      "js": [
+        "Scripts/eBay/ebayList.js"
+      ]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "Icons/ecom-lister-high-resolution-logo-transparent.png"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
+  "icons": {
+    "48": "Icons/ecom-lister-high-resolution-logo-transparent.png",
+    "128": "Icons/ecom-lister-high-resolution-logo-transparent.png"
+  }
+}
