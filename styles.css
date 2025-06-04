@@ -1,42 +1,53 @@
 /* Style for the circle container */
 #circle-container {
-  position: fixed;
-  top: 90px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 75px;
-  height: 80px;
-  background-color: rgba(255, 255, 255, 0.85);
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-  z-index: 10000;
+  position: fixed; /* Or absolute if you have a specific offset parent */
+  bottom: 20px;
+  right: 20px;
+  width: 60px;  /* Ensure it has dimensions */
+  height: 60px; /* Ensure it has dimensions */
+  z-index: 2147483647 !important; /* Max signed 32-bit integer, a common high value */
+  display: flex !important; /* Or flex, depending on content - keeping flex for centering icon */
+  opacity: 1 !important;
+  visibility: visible !important;
+  background-color: rgba(255, 255, 255, 0.85); /* Original */
+  border-radius: 50%; /* Original */
+  justify-content: center; /* Original */
+  align-items: center; /* Original */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Original */
+  cursor: pointer; /* Original */
 }
 
 /* Style for the icon */
 #floating-icon {
-  width: 70px;
-  height: 75px;
+  width: 100%;
+  height: 100%;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  cursor: pointer;
+  /* width: 70px; Original, now 100% of parent */
+  /* height: 75px; Original, now 100% of parent */
+  object-fit: contain; /* Added to ensure icon scales nicely */
 }
 
 /* Style for the floating panel */
 #floating-panel {
   position: fixed;
-  top: 100px; /* Adjust as needed */
-  left: 50%;
-  transform: translateX(-50%);
-  width: 600px; /* Wider panel */
-  max-height: 80vh; /* Limit height to 80% of the viewport height */
-  padding: 20px;
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-  z-index: 10001;
-  text-align: left;
-  overflow-y: auto; /* Add scrollbar if content exceeds height */
+  bottom: 90px; /* Example, adjust as needed */
+  right: 20px;  /* Example, adjust as needed */
+  width: 350px; /* Example, ensure it has dimensions - adjusted from 300px for a bit more space */
+  max-height: 70vh; /* Adjusted from auto to prevent excessive height */
+  z-index: 2147483646 !important; /* Slightly lower or same as icon container */
+  /* display: none; /* This will be controlled by JavaScript */
+  background-color: white !important; /* Ensure it's not transparent, added important */
+  border: 1px solid #ccc;
+  box-shadow: 0px 0px 10px rgba(0,0,0,0.5);
+  opacity: 1 !important;
+  visibility: visible !important; /* Will only show when display is not 'none' */
+  padding: 20px; /* Original */
+  border-radius: 10px; /* Original */
+  text-align: left; /* Original */
+  overflow-y: auto; /* Original - Add scrollbar if content exceeds height */
 }
 
 /* Style for the loading spinner */

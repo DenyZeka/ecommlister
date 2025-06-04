@@ -2,6 +2,7 @@ console.log("mainScript Loaded");
 
 // Wait for the page to fully load
 window.addEventListener("load", () => {
+  setTimeout(function() {
     // Create the white circle container
     const circleContainer = document.createElement("div");
     circleContainer.id = "circle-container";
@@ -332,4 +333,5 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             }
         });
     }
+  }, 0);
 });
