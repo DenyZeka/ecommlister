@@ -9,6 +9,9 @@
     "storage",
     "tabs"
   ],
+  "action": {
+    "default_popup": "popup.html"
+  },
   "host_permissions": [
     "https://www.saleyee.com/*",
     "https://www.saleyee.cn/*",
@@ -34,11 +37,7 @@
         "https://www.saleyee.com/*"
       ],
       "js": [
-        "indexdb-manager.js",
         "mainScript.js"
-      ],
-      "css": [
-        "styles.css"
       ]
     },
     {
@@ -55,11 +54,7 @@
         "https://www.aliexpress.us/item/*"
       ],
       "js": [
-        "indexdb-manager.js",
         "mainScript.js"
-      ],
-      "css": [
-        "styles.css"
       ]
     },
     {

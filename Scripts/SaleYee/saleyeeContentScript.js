@@ -85,4 +85,4 @@ function htmlToString(html) {
 }
 
 // Expose the function to other scripts
-window.saleyeeData = extractSaleYeeData;
+window.extractSaleYeeData = extractSaleYeeData;
