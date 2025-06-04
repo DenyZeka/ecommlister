@@ -91,43 +91,86 @@ function getMainVideo() {
     return false;
 }
 
-function getImages() {
-    //return Array.from(document.querySelectorAll(".magnifier-line img")).map(img => img.src);
-    const image = []
-    const images = document.querySelector('.slider--wrap--dfLgmYD')?.querySelectorAll('img')
-    images.forEach(img => {
-        if (!img.className.startsWith('slider--videoIcon')) {
-            img = fixImage(img);
-            image.push(img);
+function getImages(doc) {
+    const images = [];
+    const imageElements = doc.querySelectorAll('.gallery_Gallery__picList__1gso5 img.gallery_Gallery__image__1gBmb, .images-view-item img, #j-image-thumb-list img, .picRtol img, .main-img img, .product-main-image img, .img-zoom img, .gallery-main-img__img');
+
+    imageElements.forEach(imgElement => {
+        const imageUrl = fixImage(imgElement); // Pass the element to fixImage
+        if (imageUrl) {
+        images.push(imageUrl);
         }
-    })
-    if (image.length > 0) {
-        return image
+    });
+
+    // Fallback for schema or meta tags if no images found via selectors
+    if (images.length === 0) {
+        try {
+            const schemaOrgElement = doc.querySelector('script[type="application/ld+json"]');
+            if (schemaOrgElement) {
+                const schemaData = JSON.parse(schemaOrgElement.innerText);
+                if (schemaData && schemaData.image) {
+                    if (Array.isArray(schemaData.image)) {
+                        schemaData.image.forEach(img => {
+                            if (typeof img === 'string') {
+                                const fixedImg = fixImage(img);
+                                if(fixedImg) images.push(fixedImg);
+                            } else if (img && img.contentUrl) {
+                                 const fixedImg = fixImage(img.contentUrl);
+                                 if(fixedImg) images.push(fixedImg);
+                            }
+                        });
+                    } else if (typeof schemaData.image === 'string') {
+                         const fixedImg = fixImage(schemaData.image);
+                         if(fixedImg) images.push(fixedImg);
+                    } else if (schemaData.image && schemaData.image.contentUrl) {
+                        const fixedImg = fixImage(schemaData.image.contentUrl);
+                        if(fixedImg) images.push(fixedImg);
+                    }
+                }
+            }
+        } catch (e) {
+            // console.warn("Error parsing schema.org data for images:", e);
+        }
     }
+
+    return [...new Set(images)]; // Ensure unique images
 }
 
-function fixImage(img) {
-    if (img.src.includes('.jpg_')) {
-        // Find the base ID part of the URL (everything before the resize parameters)
-        img = img.src.split('.jpg_')[0] + '.jpg';
+function fixImage(imageInput) {
+    let imageUrl = '';
+    if (typeof imageInput === 'string') {
+        imageUrl = imageInput;
+    } else if (imageInput && typeof imageInput.getAttribute === 'function') {
+        imageUrl = imageInput.getAttribute('src') || imageInput.getAttribute('data-src');
     }
-    else if (img.src.includes('.png_')) {
-        // Find the base ID part of the URL (everything before the resize parameters)
-        img = img.src.split('.png_')[0] + '.png';
+
+    if (!imageUrl) {
+        // console.warn('fixImage received invalid input or no src found:', imageInput);
+        return null;
     }
-    return img;
+
+    imageUrl = imageUrl.replace(/(_50x50|_60x60|_100x100|_120x120|_180x180|_200x200|_220x220|_300x300|_350x350|_400x400|_450x450|_500x500|_640x640)\.(jpg|jpeg|png|gif|webp)/i, '.$2');
+    imageUrl = imageUrl.replace(/\.avif$/, '.jpg');
+    if (imageUrl.startsWith('//')) {
+        imageUrl = 'https:' + imageUrl;
+    }
+    return imageUrl;
 }
 
 async function getVariations() {
     let variations = [];
     const variationsSection = document.querySelector('.sku-item--skus--StEhULs');
+    if (!variationsSection) return variations; // Guard clause if section not found
+
     const variationsImages = variationsSection.querySelectorAll("img");
 
     for (let i = 0; i < variationsImages.length; i++) {
         variationsImages[i].click();
         await new Promise((rs, rj) => setTimeout(rs, 500));
         let variationName = document.querySelector('[class^="sku-item--title"]')?.innerText?.replace('Color:', '').trim();
-        let variationImage = fixImage(variationsImages[i]);
+        // Ensure variationName is a string, provide a fallback if null or undefined
+        variationName = variationName || `Variation ${i + 1}`;
+        let variationImage = fixImage(variationsImages[i]); // Pass the element
 
         // Start with the base name
         let finalName = variationName;
@@ -169,4 +212,4 @@ function htmlToString(html) {
 }
 
 // Expose the function to other scripts
-window.saliexpressData = extractAliExpressData;
+window.extractAliExpressData = extractAliExpressData; // Corrected global function name
