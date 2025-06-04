@@ -1,93 +1,74 @@
-# EcommLister
+# EcommLister Usage Guide
 
+The EcommLister browser extension helps you grab product information from supplier websites (AliExpress and SaleYee) and then uses that information to speed up the process of listing those items on eBay.
 
+## How to Use EcommLister Extension
 
-## Getting started
+**Step 1: Navigate to a Product Page on AliExpress or SaleYee**
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+*   Go to a specific product page on `aliexpress.com` (or `.us`) or `saleyee.com`.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+**Step 2: Activate the EcommLister UI**
 
-## Add your files
+*   Once on a product page, the EcommLister extension will inject a floating UI element (or button) onto the page. You'll need to interact with this UI (e.g., click a button like "Get Details" or similar – the exact text might vary).
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+**Step 3: Data Extraction and Editing**
 
-```
-cd existing_repo
-git remote add origin https://gitlab.com/ebaytools/EcommLister.git
-git branch -M main
-git push -uf origin main
-```
+*   **Automatic Extraction:**
+    *   **AliExpress:** The extension will attempt to automatically extract the product title, SKU (from the URL), price, images (it tries to get full-resolution ones), product variations (like different colors or sizes), the main product video, and the product description.
+    *   **SaleYee:** The extension will attempt to extract the product title, SKU, price, images, and description.
+        *   **Limitation:** Currently, the SaleYee script does *not* extract product variations or videos; these are ignored.
+*   **Price Calculation:** For both AliExpress and SaleYee, the extracted price is not used directly. A built-in calculation modifies it (this could be for adding a profit margin, currency conversion, or shipping estimation, but the exact formula is internal to the script).
+*   **SKU Check:** Before proceeding, the extension will check (using `indexdb-manager.js` via the `background.js` script) if the product's SKU has already been listed or processed by you to avoid duplicates. If it's a duplicate, it will likely inform you.
+*   **Editing Data:** The UI injected by `mainScript.js` should allow you to review and edit the extracted details before sending them to eBay.
 
-## Integrate with your tools
+**Step 4: Choose Your Listing Method**
 
-- [ ] [Set up project integrations](https://gitlab.com/ebaytools/EcommLister/-/settings/integrations)
+The UI will likely offer you a couple of options:
 
-## Collaborate with your team
+*   **Option A: List Item Directly (Single Listing)**
+    *   If you choose to list the item directly, the extension will prepare the data.
+    *   It will then likely navigate you to the eBay listing page (or you'll navigate there yourself, and the script will activate).
+    *   The `Scripts/eBay/eBayList.js` script will attempt to automatically fill in the eBay listing form with the data extracted from the supplier site.
+    *   **SKU Tracking for Direct List:** It's important to note that if you list directly, the SKU might be added to the "already listed" database (`indexdb-manager.js`) *after* the eBay listing process is initiated or completed by `eBayList.js`.
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+*   **Option B: Add to Bulk List**
+    *   You can choose to add the item to a "bulk list." This saves the product data temporarily in your browser's local storage (`chrome.storage.local`).
+    *   You can repeat Steps 1-3 to add multiple items from AliExpress and/or SaleYee to this bulk list.
 
-## Test and Deploy
+**Step 5: Listing from the Bulk List on eBay**
 
-Use the built-in continuous integration in GitLab.
+*   When you're ready to list items from your bulk list, you'll likely navigate to the eBay "create listing" page.
+*   The `Scripts/eBay/eBayList.js` script will activate. It will take the *first item* from your `bulkItems` list (stored in `chrome.storage.local`) and attempt to populate the eBay listing form with its details.
+*   **One by One:** It seems the bulk listing process still lists items one by one from the stored list. After an item is processed, `eBayList.js` signals completion, and the page reloads. The next time it runs, it would presumably take the next item from the bulk list (though the mechanism for advancing to the next item in the bulk list after a page reload needs to be robustly handled by the scripts).
+*   **SKU Tracking for Bulk List:** SKUs from items added to the bulk list are likely added to the `indexdb-manager.js` database when you click the "Add to Bulk List" button on the supplier page.
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+**Step 6: Handling the eBay Listing Process (via `eBayList.js`)**
 
-***
+*   **Automatic Population:** `eBayList.js` will try to fill in:
+    *   Title
+    *   SKU
+    *   Description (this might be plain text or basic HTML from the supplier)
+    *   Price (the calculated one)
+    *   Images (these might be uploaded via a CORS proxy, meaning the extension fetches them from the supplier's server on your behalf)
+    *   Video (if extracted from AliExpress; this is done by `background.js` fetching the video and converting it to base64 for embedding or upload).
+    *   Shipping details (some fields like `shippingPolicy` and `zipCode` might be hardcoded or need manual input if not fully extracted).
+    *   Item location.
+*   **eBay Variations - SIGNIFICANT LIMITATION:**
+    *   While `eBayList.js` can navigate to eBay's interface for setting up product variations, the current code **does not automatically populate the individual details for each variation** (e.g., each color/size combination's specific SKU, price, quantity, or image).
+    *   **What this means for you:** If you list an item with variations (e.g., a T-shirt that comes in different sizes and colors), you will likely need to **manually enter the details for each specific variation on the eBay site** after the script has filled in the main item information.
+*   **Completion:** Once `eBayList.js` has finished its attempt to fill the form, it sends a message to `background.js`. If the listing originated from SaleYee, `background.js` will try to notify the last active SaleYee tab that the process is complete. The eBay page will then typically reload.
 
-# Editing this README
+## Other Potential Features (Inferred)
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+*   **External SKU Import (`background.js`):** There's a feature to allow external sources (like a companion web app or another extension) to send a list of SKUs directly to the extension to be added to the `listedSkus` database. This is likely for advanced users or integration with other systems.
 
-## Suggestions for a good README
+## Key Limitations to Be Aware Of
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+1.  **Incomplete eBay Variation Handling:** As mentioned, the script does not fill in individual details for product variations on eBay. This is the most significant operational limitation for users selling variable products.
+2.  **No Variation/Video Extraction from SaleYee:** The script for SaleYee currently does not extract product variations or video links.
+3.  **Fragile eBay Selectors:** The extension relies on specific IDs and structures of the eBay website to fill in forms. If eBay changes its website design, the extension could break or fail to populate fields correctly until it's updated.
+4.  **Price Calculation is a Black Box:** You don't have direct control from a UI over how the price is calculated; it's a fixed logic in the script.
+5.  **Bulk Listing Workflow:** The bulk listing processes items one at a time by reloading the eBay page. Ensure you monitor this process.
 
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Remember to double-check the information on eBay before finalizing your listings, especially for items with variations.
